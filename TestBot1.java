@@ -59,7 +59,7 @@ public class TestBot1 extends DefaultBWListener {
         System.out.println("Map data ready");
         
         
-        for (BaseLocation b : BWTA.getBaseLocations()) {
+        for (BaseLocation b : BWTA.getStartLocations()) {
         	baseStack.push(b);
         }
         currentExploreBase = baseStack.pop();
@@ -144,12 +144,24 @@ public class TestBot1 extends DefaultBWListener {
     	
     	else {
     		int dis = explorer.getDistance(currentExploreBase.getPosition());
-            System.out.println(dis);
+            //System.out.println(currentExploreBase.getPosition() + ": " +dis);
             
             //Save current position, if the explorer get attacked.
     		if(explorer.isUnderAttack()) {
     			enermyBasePosition = explorer.getPosition();
     			//System.out.println("!!!!!!!"+enermyBasePosition.toString());
+    		}
+    		
+    		for(Unit allUnity: game.getAllUnits()) {
+    			if(allUnity.getType() == UnitType.Zerg_Hatchery || allUnity.getType() == UnitType.Protoss_Nexus || 
+    					(allUnity.getType() == UnitType.Terran_Command_Center) && allUnity.getDistance(myBase.getPosition()) > 60) {
+    				int x = new Integer(explorer.getPosition().getX());
+    				int y = new Integer(explorer.getPosition().getY());
+    				if(null == enermyBasePosition) {
+    					enermyBasePosition = new Position(x,y);
+    				}
+    				//System.out.println("!!!!!!!"+enermyBasePosition.toString());
+    			}
     		}
     		
     		//If the destination is my own base, then ignore it and move to the next.
@@ -163,16 +175,21 @@ public class TestBot1 extends DefaultBWListener {
     		  * If the explorer is really near to a possible-base position and did not find anything,
     			he will move to the next position.
     		  */
-        	if(!baseStack.isEmpty() && explorer.getDistance(currentExploreBase.getPosition()) <= 5) {
+        	if(!baseStack.isEmpty() && explorer.getDistance(currentExploreBase.getPosition()) <= 60) {
             	currentExploreBase = baseStack.pop();
             	this.explorer.attack(currentExploreBase.getPosition());
             }
             
         	//As long as the explorer is farer than 5 to the destination, then keep moving forward.
-            if(!baseStack.isEmpty() && explorer.getDistance(currentExploreBase.getPosition()) > 5) {
+            if(!baseStack.isEmpty() && explorer.getDistance(currentExploreBase.getPosition()) > 60) {
             	this.explorer.move(currentExploreBase.getPosition());
             }
         }
+    	
+    	if(enermyBasePosition != null) {
+    		System.out.println(enermyBasePosition);
+    		game.drawCircleMap(enermyBasePosition.getX(), enermyBasePosition.getY(), 100, new Color(255,0,0));
+    	}
     }
 
     public static void main(String[] args) {
